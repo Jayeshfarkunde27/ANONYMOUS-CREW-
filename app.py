@@ -207,17 +207,18 @@ def role_selection():
 @app.route("/tenant")
 def tenant():
     if not current_user.is_authenticated:
-        return redirect('/auth')
+        return redirect(url_for('auth'))
     
-    if current_user.role !='Tenant':
-        return redirect('/role_selection')
-    
-    return render_template('tenant.html')
+    if current_user.role != 'Tenant':
+        return redirect(url_for('role_selection'))
 
-@app.route("/add_property", methods=['GET', 'POST'])
+    properties = Property.query.filter_by(user_id=current_user.id).all()
+    return render_template('tenant.html', properties=properties)
+
+@app.route('/add_property', methods=['GET', 'POST'])
 def add_property():
-    if not current_user.is_authenticated or current_user.role != 'tenant':
-        return redirect('/auth')
+    if not current_user.is_authenticated or current_user.role != 'Tenant':
+        return redirect(url_for('auth'))
 
     if request.method == 'POST':
         room_type = request.form.get('room_type')
@@ -247,7 +248,7 @@ def add_property():
         db.session.add(new_property)
         db.session.commit()
         flash('Property added successfully!', 'success')
-        return redirect('/tenant')
+        return redirect(url_for('tenant'))
 
     return render_template('add_property.html')
 
