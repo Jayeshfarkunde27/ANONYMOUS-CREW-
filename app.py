@@ -238,8 +238,13 @@ def tenant():
     rooms = Property.query.filter_by(user_id=current_user.id, property_type='room').all()
     hostels = Property.query.filter_by(user_id=current_user.id, property_type='hostel').all()
     apartments = Property.query.filter_by(user_id=current_user.id, property_type='apartment').all()
+    # unread requests count for notification badge
+    try:
+        unread_count = SeekerRequest.query.filter_by(owner_id=current_user.id, status='new').count()
+    except Exception:
+        unread_count = 0
     
-    return render_template('tenant.html', rooms=rooms, hostels=hostels, apartments=apartments)
+    return render_template('tenant.html', rooms=rooms, hostels=hostels, apartments=apartments, unread_count=unread_count)
 
 @app.route('/add_property', methods=['GET', 'POST'])
 def add_property():
