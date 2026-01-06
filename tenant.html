@@ -3,200 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Let - My Properties (Owner Dashboard)</title>
+    <title>To-Let - My Properties</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #0066ff;
-            --primary-dark: #0052cc;
-            --accent: #ff6b6b;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --light: #f8fafc;
-            --lighter: #f1f5f9;
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --accent: #ff4757;
+            --success: #2ecc71;
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --glass-shadow: 0 8px 32px rgba(67, 97, 238, 0.15);
+            --hover-shadow: 0 20px 50px rgba(67, 97, 238, 0.3);
             --text: #1e293b;
             --text-muted: #64748b;
         }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; }
-        
-        body { 
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            font-family: 'Inter', 'Segoe UI', sans-serif;
+
+        body {
+            background: var(--bg-gradient);
+            font-family: 'Inter', sans-serif;
             color: var(--text);
             min-height: 100vh;
         }
-        
-        .navbar { 
-            box-shadow: 0 4px 20px rgba(0, 102, 255, 0.08);
+
+        .navbar {
             background: white !important;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(67, 97, 238, 0.1);
         }
-        
-        .navbar-brand { font-size: 1.5rem !important; font-weight: 800; letter-spacing: -0.5px; }
-        
-        .add-btn { 
-            background: linear-gradient(135deg, var(--primary) 0%, #0052cc 100%);
-            color: white !important;
-            padding: 24px 20px;
-            font-size: 1rem;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 102, 255, 0.25);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: none;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .add-btn:hover { 
-            transform: translateY(-6px);
-            box-shadow: 0 12px 32px rgba(0, 102, 255, 0.35);
-            color: white;
-        }
-        .add-btn:active { transform: translateY(-2px); }
-        .add-btn i { font-size: 2.2rem; margin-bottom: 12px; display: block; }
-        
-        .section-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 1.5rem;
-            letter-spacing: -0.5px;
-        }
-        
-        .property-card { 
-            border: none;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: white;
-            height: 100%;
-        }
-        .property-card:hover { 
-            transform: translateY(-8px);
-            box-shadow: 0 12px 32px rgba(0, 102, 255, 0.15);
-        }
-        .property-card img {
-            height: 200px;
-            object-fit: cover;
-            background: linear-gradient(135deg, #dbeafe, #e0e7ff);
-        }
-        .property-card .card-body {
-            padding: 1.5rem;
-        }
-        .property-card .card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            color: var(--text);
-        }
-        .property-card .card-text {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
-        }
-        
-        .empty-state { 
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary) 0%, #667eea 100%);
+            border-radius: 28px;
+            padding: 80px 40px;
             text-align: center;
-            padding: 80px 20px;
-            color: var(--text-muted);
+            color: white;
+            margin: 40px 0;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            overflow: hidden;
         }
-        .empty-state i { 
-            font-size: 6rem;
-            color: #cbd5e1;
-            margin-bottom: 1.5rem;
-            opacity: 0.6;
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&q=80') center/cover;
+            opacity: 0.2;
+            z-index: 0;
         }
-        .empty-state h4 {
-            color: var(--text);
+
+        .hero-content { position: relative; z-index: 1; }
+
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .hero-section p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+
+        .add-btn {
+            background: white;
+            color: var(--primary);
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            transition: all 0.4s ease;
+            min-width: 280px;
+            text-decoration: none;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
         }
-        
-        .nav-tabs {
-            border-bottom: 2px solid #e2e8f0;
+
+        .add-btn:hover {
+            transform: translateY(-15px);
+            box-shadow: var(--hover-shadow);
+            color: var(--primary-dark);
         }
-        .nav-tabs .nav-link {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-muted);
+
+        .add-btn i {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .property-card {
             border: none;
-            padding: 1rem 1.5rem;
-            transition: all 0.3s;
+            border-radius: 24px;
+            overflow: hidden;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--glass-shadow);
+            transition: all 0.4s ease;
+        }
+
+        .property-card:hover {
+            transform: translateY(-15px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .property-img {
+            height: 240px;
+            background-size: cover;
+            background-position: center;
             position: relative;
         }
-        .nav-tabs .nav-link:hover {
-            color: var(--primary);
-            background: transparent;
+
+        .property-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 30px 20px 20px;
+            color: white;
         }
+
+        .property-type {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .property-price {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .location {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-edit {
+            background: var(--primary);
+            border: none;
+            flex: 1;
+            font-weight: 600;
+            border-radius: 12px;
+        }
+
+        .btn-view {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            flex: 1;
+            font-weight: 600;
+            border-radius: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 120px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 8rem;
+            color: #e2e8f0;
+            margin-bottom: 30px;
+        }
+
+        .nav-tabs .nav-link {
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 16px 32px;
+            border: none;
+            border-bottom: 3px solid transparent;
+        }
+
         .nav-tabs .nav-link.active {
             color: var(--primary);
             border-bottom: 3px solid var(--primary);
-            background: transparent;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, #0052cc 100%);
-            border: none;
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 102, 255, 0.25);
-            background: linear-gradient(135deg, #0052cc 0%, #003d99 100%);
-            color: white;
-        }
-        
-        .btn-outline-secondary {
-            border-color: #cbd5e1;
-            color: var(--text-muted);
-            font-weight: 600;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        .btn-outline-secondary:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: transparent;
-        }
-        
-        .container {
-            max-width: 1200px;
         }
     </style>
 </head>
 <body>
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary fs-3" href="/">To-Let 🏠</a>
-            <div class="d-flex align-items-center gap-3">
-                <!-- Notification Bell -->
-                <a href="{{ url_for('notifications') }}" class="btn btn-outline-secondary position-relative">
+            <a class="navbar-brand fw-bold fs-3" href="/">To-Let 🏠</a>
+            <div class="d-flex align-items-center gap-4">
+                <a href="#" class="position-relative text-dark">
                     <i class="fas fa-bell fs-4"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {{ unread_count or 0 }}
-                    </span>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
                 </a>
-
-                <!-- Profile Dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-primary dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
-                        <img src="https://via.placeholder.com/40" class="rounded-circle" alt="Profile">
-                        <span>{{ current_user.full_name or 'Owner' }}</span>
+                    <button class="btn dropdown-toggle d-flex align-items-center gap-2 border-0" data-bs-toggle="dropdown">
+                        <img src="https://via.placeholder.com/48" class="rounded-circle" alt="Profile">
+                        <span class="fw-semibold">{{ current_user.full_name or 'Owner' }}</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-user me-2"></i> My Profile</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-3"></i>My Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-3"></i>Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="/logout"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="fas fa-sign-out-alt me-3"></i>Logout</a></li>
                     </ul>
                 </div>
             </div>
@@ -204,59 +231,72 @@
     </nav>
 
     <div class="container my-5">
-
-        <!-- Add Property Buttons (3 Types) -->
-        <div class="text-center mb-5">
-            <h4 class="text-muted mb-4">What do you want to list today?</h4>
-            <div class="d-flex flex-wrap justify-content-center gap-4">
-                <a href="{{ url_for('add_property') }}?type=room" class="btn add-btn shadow-lg d-flex flex-column align-items-center">
-                    <i class="fas fa-bed mb-3"></i>
-                    Add Room
-                </a>
-                <a href="{{ url_for('add_property') }}?type=hostel" class="btn add-btn shadow-lg d-flex flex-column align-items-center">
-                    <i class="fas fa-building mb-3"></i>
-                    Add Hostel / PG
-                </a>
-                <a href="{{ url_for('add_property') }}?type=apartment" class="btn add-btn shadow-lg d-flex flex-column align-items-center">
-                    <i class="fas fa-home mb-3"></i>
-                    Add Sharing Apartment
-                </a>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-content">
+                <h1>Grow Your Rental Income</h1>
+                <p>List your rooms, PGs, or apartments and reach thousands of tenants looking for a home</p>
+                <div class="row g-4 justify-content-center">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('add_property') }}?type=room" class="add-btn d-block text-center">
+                            <i class="fas fa-bed"></i>
+                            Add Room
+                            <small class="d-block mt-2 opacity-75">Single • Double • Triple</small>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('add_property') }}?type=hostel" class="add-btn d-block text-center">
+                            <i class="fas fa-building"></i>
+                            Add Hostel / PG
+                            <small class="d-block mt-2 opacity-75">Boys • Girls • Co-living</small>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('add_property') }}?type=apartment" class="add-btn d-block text-center">
+                            <i class="fas fa-home"></i>
+                            Add Apartment
+                            <small class="d-block mt-2 opacity-75">1BHK • 2BHK • Flat</small>
+                        </a>
+                    </div>
+                </div>
             </div>
-            <p class="text-muted mt-4">Choose a type and fill details → your listing goes live instantly!</p>
         </div>
 
-        <!-- Tabs for Different Property Types -->
-        <h3 class="mb-4">My Listed Properties</h3>
-        <ul class="nav nav-tabs mb-5" id="propertyTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="rooms-tab" data-bs-toggle="tab" data-bs-target="#rooms" type="button">My Rooms</button>
+        <!-- Tabs -->
+        <ul class="nav nav-tabs justify-content-center mb-5">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#rooms">My Rooms</button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="hostels-tab" data-bs-toggle="tab" data-bs-target="#hostels" type="button">My Hostels / PGs</button>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#hostels">My Hostels / PGs</button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="apartments-tab" data-bs-toggle="tab" data-bs-target="#apartments" type="button">My Sharing Apartments</button>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#apartments">My Apartments</button>
             </li>
         </ul>
 
         <div class="tab-content">
             <!-- Rooms Tab -->
             <div class="tab-pane fade show active" id="rooms">
-                {% if rooms and rooms|length > 0 %}
+                {% if rooms %}
                 <div class="row g-4">
                     {% for p in rooms %}
                     <div class="col-md-6 col-lg-4">
                         <div class="card property-card">
-                            {% if p.images and p.images|length > 0 %}
-                            <img src="{{ url_for('static', filename='uploads/' ~ p.images[0]) }}" class="card-img-top" alt="Property image">
-                            {% endif %}
+                            <div class="property-img" style="background-image: url('https://www.luxurychicagoapartments.com/wp-content/uploads/2023/03/Seven-10-West-2-Bedroom-06.jpg')">
+                                <div class="property-overlay">
+                                    <div class="property-type">{{ p.room_type }}</div>
+                                    <div class="property-price">₹{{ p.rent }}/mo</div>
+                                </div>
+                            </div>
                             <div class="card-body">
-                                <h5 class="card-title">{{ p.room_type }}</h5>
-                                <p class="card-text text-truncate" style="max-height:3.6em;">{{ p.address }}</p>
-                                <p class="mb-1"><strong>Rent:</strong> ₹{{ p.rent }}</p>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ url_for('edit_property', property_id=p.id) }}" class="btn btn-sm btn-primary">Edit</a>
-                                    <a href="{{ url_for('view_property', property_id=p.id) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                                <p class="location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ p.address[:60] }}{% if p.address|length > 60 %}...{% endif %}
+                                </p>
+                                <div class="actions">
+                                    <a href="#" class="btn btn-edit">Edit</a>
+                                    <a href="#" class="btn btn-view">View</a>
                                 </div>
                             </div>
                         </div>
@@ -267,28 +307,32 @@
                 <div class="empty-state">
                     <i class="fas fa-bed"></i>
                     <h4>No rooms listed yet</h4>
-                    <p>Click "Add Room" above to list your first one!</p>
+                    <p>Start by adding your first room above!</p>
                 </div>
                 {% endif %}
             </div>
 
             <!-- Hostels Tab -->
             <div class="tab-pane fade" id="hostels">
-                {% if hostels and hostels|length > 0 %}
+                {% if hostels %}
                 <div class="row g-4">
                     {% for p in hostels %}
                     <div class="col-md-6 col-lg-4">
                         <div class="card property-card">
-                            {% if p.images and p.images|length > 0 %}
-                            <img src="{{ url_for('static', filename='uploads/' ~ p.images[0]) }}" class="card-img-top" alt="Property image">
-                            {% endif %}
+                            <div class="property-img" style="background-image: url('https://imgstaticcontent.lbb.in/lbbnew/wp-content/uploads/sites/1/2017/03/24152305/240317CoHoResidence01.jpg')">
+                                <div class="property-overlay">
+                                    <div class="property-type">{{ p.room_type }}</div>
+                                    <div class="property-price">₹{{ p.rent }}/mo</div>
+                                </div>
+                            </div>
                             <div class="card-body">
-                                <h5 class="card-title">{{ p.room_type }}</h5>
-                                <p class="card-text text-truncate" style="max-height:3.6em;">{{ p.address }}</p>
-                                <p class="mb-1"><strong>Rent:</strong> ₹{{ p.rent }}</p>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ url_for('edit_property', property_id=p.id) }}" class="btn btn-sm btn-primary">Edit</a>
-                                    <a href="{{ url_for('view_property', property_id=p.id) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                                <p class="location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ p.address[:60] }}{% if p.address|length > 60 %}...{% endif %}
+                                </p>
+                                <div class="actions">
+                                    <a href="#" class="btn btn-edit">Edit</a>
+                                    <a href="#" class="btn btn-view">View</a>
                                 </div>
                             </div>
                         </div>
@@ -298,29 +342,33 @@
                 {% else %}
                 <div class="empty-state">
                     <i class="fas fa-building"></i>
-                    <h4>No hostels or PGs listed yet</h4>
-                    <p>Click "Add Hostel / PG" to get started!</p>
+                    <h4>No hostels listed yet</h4>
+                    <p>List your PG and reach students today!</p>
                 </div>
                 {% endif %}
             </div>
 
             <!-- Apartments Tab -->
             <div class="tab-pane fade" id="apartments">
-                {% if apartments and apartments|length > 0 %}
+                {% if apartments %}
                 <div class="row g-4">
                     {% for p in apartments %}
                     <div class="col-md-6 col-lg-4">
                         <div class="card property-card">
-                            {% if p.images and p.images|length > 0 %}
-                            <img src="{{ url_for('static', filename='uploads/' ~ p.images[0]) }}" class="card-img-top" alt="Property image">
-                            {% endif %}
+                            <div class="property-img" style="background-image: url('https://www.asenseinterior.com/assets/uploads/760453174d3a1eb969e37a5d367f8127.webp')">
+                                <div class="property-overlay">
+                                    <div class="property-type">{{ p.room_type }}</div>
+                                    <div class="property-price">₹{{ p.rent }}/mo</div>
+                                </div>
+                            </div>
                             <div class="card-body">
-                                <h5 class="card-title">{{ p.room_type }}</h5>
-                                <p class="card-text text-truncate" style="max-height:3.6em;">{{ p.address }}</p>
-                                <p class="mb-1"><strong>Rent:</strong> ₹{{ p.rent }}</p>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ url_for('edit_property', property_id=p.id) }}" class="btn btn-sm btn-primary">Edit</a>
-                                    <a href="{{ url_for('view_property', property_id=p.id) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                                <p class="location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ p.address[:60] }}{% if p.address|length > 60 %}...{% endif %}
+                                </p>
+                                <div class="actions">
+                                    <a href="#" class="btn btn-edit">Edit</a>
+                                    <a href="#" class="btn btn-view">View</a>
                                 </div>
                             </div>
                         </div>
@@ -330,13 +378,12 @@
                 {% else %}
                 <div class="empty-state">
                     <i class="fas fa-home"></i>
-                    <h4>No sharing apartments listed yet</h4>
-                    <p>Click "Add Sharing Apartment" to list one!</p>
+                    <h4>No apartments listed yet</h4>
+                    <p>Start earning from your flat today!</p>
                 </div>
                 {% endif %}
             </div>
         </div>
-
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
