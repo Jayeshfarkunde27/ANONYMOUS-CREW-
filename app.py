@@ -31,6 +31,7 @@ class User(UserMixin, db.Model):
 
 class Property(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    property_type = db.Column(db.String(50), default='room', nullable=False)  # 'room', 'hostel', 'apartment'
     room_type = db.Column(db.String(50), nullable=False)
     rent = db.Column(db.Integer, nullable=False)
     address = db.Column(db.Text, nullable=False)
@@ -40,6 +41,27 @@ class Property(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+class SeekerRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    seeker_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    seeker_name = db.Column(db.String(150), nullable=False)
+    seeker_phone = db.Column(db.String(20), nullable=True)
+    message = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(30), default='new')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    messages = db.relationship('Message', backref='request_obj', lazy=True)
+
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.Integer, db.ForeignKey('seeker_request.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 
@@ -212,13 +234,23 @@ def tenant():
     if current_user.role != 'Tenant':
         return redirect(url_for('role_selection'))
 
-    properties = Property.query.filter_by(user_id=current_user.id).all()
-    return render_template('tenant.html', properties=properties)
+    # Get all properties grouped by type
+    rooms = Property.query.filter_by(user_id=current_user.id, property_type='room').all()
+    hostels = Property.query.filter_by(user_id=current_user.id, property_type='hostel').all()
+    apartments = Property.query.filter_by(user_id=current_user.id, property_type='apartment').all()
+    
+    return render_template('tenant.html', rooms=rooms, hostels=hostels, apartments=apartments)
 
 @app.route('/add_property', methods=['GET', 'POST'])
 def add_property():
     if not current_user.is_authenticated or current_user.role != 'Tenant':
         return redirect(url_for('auth'))
+
+    # Get type from query parameter (GET) or form (POST)
+    if request.method == 'POST':
+        property_type = request.form.get('property_type', 'room')
+    else:
+        property_type = request.args.get('type', 'room')
 
     if request.method == 'POST':
         room_type = request.form.get('room_type')
@@ -237,6 +269,7 @@ def add_property():
                 image_filenames.append(filename)
 
         new_property = Property(
+            property_type=property_type,  # Save the property type
             room_type=room_type,
             rent=int(rent),
             address=address,
@@ -250,7 +283,63 @@ def add_property():
         flash('Property added successfully!', 'success')
         return redirect(url_for('tenant'))
 
-    return render_template('add_property.html')
+    return render_template('add_property.html', property_type=property_type)
+
+@app.route("/view_property/<int:property_id>")
+def view_property(property_id):
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth'))
+    
+    property_obj = Property.query.get_or_404(property_id)
+    
+    # Check if current user owns this property
+    if property_obj.user_id != current_user.id:
+        flash('You do not have permission to view this property.', 'error')
+        return redirect(url_for('tenant'))
+    
+    return render_template('view_property.html', property=property_obj)
+
+@app.route("/edit_property/<int:property_id>", methods=['GET', 'POST'])
+def edit_property(property_id):
+    if not current_user.is_authenticated or current_user.role != 'Tenant':
+        return redirect(url_for('auth'))
+    
+    property_obj = Property.query.get_or_404(property_id)
+    
+    # Check if current user owns this property
+    if property_obj.user_id != current_user.id:
+        flash('You do not have permission to edit this property.', 'error')
+        return redirect(url_for('tenant'))
+    
+    if request.method == 'POST':
+        property_obj.room_type = request.form.get('room_type')
+        property_obj.rent = int(request.form.get('rent'))
+        property_obj.address = request.form.get('address')
+        property_obj.latitude = float(request.form.get('latitude'))
+        property_obj.longitude = float(request.form.get('longitude'))
+        
+        # Handle new images
+        images = request.files.getlist('images')
+        for image in images:
+            if image:
+                filename = secure_filename(image.filename)
+                image.save(f'static/uploads/{filename}')
+                if property_obj.images:
+                    property_obj.images.append(filename)
+                else:
+                    property_obj.images = [filename]
+        
+        db.session.commit()
+        flash('Property updated successfully!', 'success')
+        return redirect(url_for('view_property', property_id=property_obj.id))
+    
+    return render_template('edit_property.html', property=property_obj)
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    flash('Logged out successfully!', 'success')
+    return redirect(url_for('home'))
 
 @app.route("/room")
 def room():
@@ -261,6 +350,125 @@ def room():
         return redirect('/role_selection')
 
     return render_template("room.html")
+
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth'))
+
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        phone = request.form.get('phone', '').strip()
+        age = request.form.get('age')
+        gender = request.form.get('gender')
+        permanent_address = request.form.get('permanent_address', '').strip()
+        temporary_address = request.form.get('temporary_address', '').strip()
+        same_address = 'same_address' in request.form
+
+        # Basic validation
+        errors = []
+        if not full_name:
+            errors.append('Full name is required.')
+        if phone and not re.match(r'^[6-9]\d{9}$', phone):
+            errors.append('Enter a valid 10-digit phone number.')
+        if age:
+            try:
+                age_val = int(age)
+                if age_val < 18:
+                    errors.append('You must be 18 or older.')
+            except ValueError:
+                errors.append('Invalid age provided.')
+        else:
+            age_val = None
+
+        if same_address:
+            temporary_address = permanent_address
+
+        if not permanent_address:
+            errors.append('Permanent address is required.')
+
+        if errors:
+            for e in errors:
+                flash(e, 'error')
+            return render_template('profile.html')
+
+        # Save changes
+        current_user.full_name = full_name
+        current_user.phone = phone
+        current_user.age = age_val
+        current_user.gender = gender
+        current_user.permanent_address = permanent_address
+        current_user.temporary_address = temporary_address
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+
+        # Redirect back to appropriate dashboard
+        if current_user.role == 'Tenant':
+            return redirect(url_for('tenant'))
+        elif current_user.role == 'Room/PG':
+            return redirect(url_for('room'))
+        else:
+            return redirect(url_for('role_selection'))
+
+    return render_template('profile.html')
+
+
+@app.route('/notifications')
+def notifications():
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth'))
+
+    # requests where current user is the owner
+    reqs = SeekerRequest.query.filter_by(owner_id=current_user.id).order_by(SeekerRequest.created_at.desc()).all()
+    return render_template('notifications.html', requests=reqs)
+
+
+@app.route('/request_property/<int:property_id>', methods=['GET', 'POST'])
+def request_property(property_id):
+    prop = Property.query.get_or_404(property_id)
+    if request.method == 'POST':
+        seeker_name = request.form.get('name') or 'Anonymous'
+        seeker_phone = request.form.get('phone')
+        message = request.form.get('message')
+
+        newreq = SeekerRequest(
+            property_id=prop.id,
+            owner_id=prop.user_id,
+            seeker_user_id=current_user.id if current_user.is_authenticated else None,
+            seeker_name=seeker_name,
+            seeker_phone=seeker_phone,
+            message=message
+        )
+        db.session.add(newreq)
+        db.session.commit()
+        flash('Request sent to owner.', 'success')
+        return redirect(url_for('view_property', property_id=prop.id))
+
+    return render_template('request_property.html', property=prop)
+
+
+@app.route('/chat/<int:request_id>', methods=['GET', 'POST'])
+def chat(request_id):
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth'))
+    req_obj = SeekerRequest.query.get_or_404(request_id)
+
+    # Only owner or seeker may access (owner for now)
+    if current_user.id != req_obj.owner_id and current_user.id != req_obj.seeker_user_id:
+        flash('You do not have permission to access this chat.', 'error')
+        return redirect(url_for('notifications'))
+
+    if request.method == 'POST':
+        text = request.form.get('text')
+        if text and text.strip():
+            msg = Message(request_id=req_obj.id, sender_id=current_user.id, text=text.strip())
+            db.session.add(msg)
+            db.session.commit()
+            return redirect(url_for('chat', request_id=req_obj.id))
+
+    messages = Message.query.filter_by(request_id=req_obj.id).order_by(Message.created_at.asc()).all()
+    return render_template('chat.html', req=req_obj, messages=messages)
 
 if __name__ == '__main__':
     with app.app_context():
