@@ -106,12 +106,34 @@
         <div class="tab-content">
             <!-- Rooms Tab -->
             <div class="tab-pane fade show active" id="rooms">
+                {% if properties and properties|length > 0 %}
+                <div class="row g-4">
+                    {% for p in properties %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card property-card">
+                            {% if p.images and p.images|length > 0 %}
+                            <img src="{{ url_for('static', filename='uploads/' ~ p.images[0]) }}" class="card-img-top" alt="Property image">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ p.room_type }}</h5>
+                                <p class="card-text text-truncate" style="max-height:3.6em;">{{ p.address }}</p>
+                                <p class="mb-1"><strong>Rent:</strong> ₹{{ p.rent }}</p>
+                                <div class="d-flex gap-2">
+                                    <a href="#" class="btn btn-sm btn-primary">Edit</a>
+                                    <a href="#" class="btn btn-sm btn-outline-secondary">View</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
                 <div class="empty-state">
                     <i class="fas fa-bed"></i>
                     <h4>No rooms listed yet</h4>
                     <p>Click "Add Room" above to list your first one!</p>
                 </div>
-                <!-- Future: Jinja loop for rooms here -->
+                {% endif %}
             </div>
 
             <!-- Hostels Tab -->
