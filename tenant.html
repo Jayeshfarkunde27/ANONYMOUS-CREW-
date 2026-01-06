@@ -45,9 +45,8 @@
                 <!-- Notification Bell -->
                 <a href="{{ url_for('notifications') }}" class="btn btn-outline-secondary position-relative">
                     <i class="fas fa-bell fs-4"></i>
-                    {% set unread = requests = [] %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {{ SeekerRequest.query.filter_by(owner_id=current_user.id, status='new').count() }}
+                        {{ unread_count or 0 }}
                     </span>
                 </a>
 
