@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Let - My Properties (Owner Dashboard)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        .navbar { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .add-btn { 
+            background: linear-gradient(135deg, #005be8, #007bff); 
+            color: white; 
+            padding: 18px; 
+            font-size: 1.3rem; 
+            border-radius: 18px; 
+            box-shadow: 0 10px 30px rgba(0, 91, 234, 0.3);
+            transition: transform 0.3s;
+            min-width: 280px;
+        }
+        .add-btn:hover { transform: translateY(-10px); }
+        .add-btn i { font-size: 2rem; }
+        .property-card { 
+            border: none; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            transition: transform 0.3s; 
+        }
+        .property-card:hover { transform: translateY(-10px); }
+        .empty-state { text-align: center; padding: 100px 20px; color: #888; }
+        .empty-state i { font-size: 7rem; color: #e0e0e0; margin-bottom: 20px; opacity: 0.6; }
+        .nav-tabs .nav-link { font-size: 1.2rem; font-weight: 600; }
+        .nav-tabs .nav-link.active { color: #005be8; border-bottom: 4px solid #005be8; }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary fs-3" href="/">To-Let 🏠</a>
+            <div class="d-flex align-items-center gap-3">
+                <!-- Notification Bell -->
+                <button class="btn btn-outline-secondary position-relative" type="button">
+                    <i class="fas fa-bell fs-4"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        3
+                    </span>
+                </button>
+
+                <!-- Profile Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+                        <img src="https://via.placeholder.com/40" class="rounded-circle" alt="Profile">
+                        <span>{{ current_user.full_name or 'Owner' }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> My Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+
+        <!-- Add Property Buttons (3 Types) -->
+        <div class="text-center mb-5">
+            <h4 class="text-muted mb-4">What do you want to list today?</h4>
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                <a href="{{ url_for('add_property') }}?type=room" class="btn add-btn shadow-lg d-flex flex-column align-items-center">
+                    <i class="fas fa-bed mb-3"></i>
+                    Add Room
+                </a>
+                <a href="{{ url_for('add_property') }}?type=hostel" class="btn add-btn shadow-lg d-flex flex-column align-items-center">
+                    <i class="fas fa-building mb-3"></i>
+                    Add Hostel / PG
+                </a>
+                <a href="{{ url_for('add_property') }}?type=apartment" class="btn add-btn shadow-lg d-flex flex-column align-items-center">
+                    <i class="fas fa-home mb-3"></i>
+                    Add Sharing Apartment
+                </a>
+            </div>
+            <p class="text-muted mt-4">Choose a type and fill details → your listing goes live instantly!</p>
+        </div>
+
+        <!-- Tabs for Different Property Types -->
+        <h3 class="mb-4">My Listed Properties</h3>
+        <ul class="nav nav-tabs mb-5" id="propertyTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="rooms-tab" data-bs-toggle="tab" data-bs-target="#rooms" type="button">My Rooms</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="hostels-tab" data-bs-toggle="tab" data-bs-target="#hostels" type="button">My Hostels / PGs</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="apartments-tab" data-bs-toggle="tab" data-bs-target="#apartments" type="button">My Sharing Apartments</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Rooms Tab -->
+            <div class="tab-pane fade show active" id="rooms">
+                <div class="empty-state">
+                    <i class="fas fa-bed"></i>
+                    <h4>No rooms listed yet</h4>
+                    <p>Click "Add Room" above to list your first one!</p>
+                </div>
+                <!-- Future: Jinja loop for rooms here -->
+            </div>
+
+            <!-- Hostels Tab -->
+            <div class="tab-pane fade" id="hostels">
+                <div class="empty-state">
+                    <i class="fas fa-building"></i>
+                    <h4>No hostels or PGs listed yet</h4>
+                    <p>Click "Add Hostel / PG" to get started!</p>
+                </div>
+            </div>
+
+            <!-- Apartments Tab -->
+            <div class="tab-pane fade" id="apartments">
+                <div class="empty-state">
+                    <i class="fas fa-home"></i>
+                    <h4>No sharing apartments listed yet</h4>
+                    <p>Click "Add Sharing Apartment" to list one!</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

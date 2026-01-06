@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Let - Add Room/PG Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .form-card { background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); padding: 40px; }
+        #map { height: 400px; border-radius: 15px; margin-top: 20px; }
+        .section-title { font-size: 1.4rem; font-weight: 700; color: #005be8; margin-bottom: 20px; }
+    </style>
+    <!-- Google Maps API (Replace YOUR_API_KEY with real key later) -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
+</head>
+<body>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="form-card">
+
+                    <h2 class="text-center mb-5 fw-bold text-primary">Add Room / PG Details</h2>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        <!-- Flash Messages -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category=='error' else 'success' }}">{{ message }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <!-- 1. Room Type -->
+                        <div class="mb-4">
+                            <label class="section-title"><i class="fas fa-home me-2"></i>1. Room Type</label>
+                            <select name="room_type" class="form-select form-select-lg" required>
+                                <option value="">Select type...</option>
+                                <option value="Single Room">Single Room</option>
+                                <option value="Double Sharing">Double Sharing</option>
+                                <option value="Triple Sharing">Triple Sharing</option>
+                                <option value="PG for Boys">PG for Boys</option>
+                                <option value="PG for Girls">PG for Girls</option>
+                                <option value="Flat/Apartment">Flat/Apartment</option>
+                            </select>
+                        </div>
+
+                        <!-- 2. Rent -->
+                        <div class="mb-4">
+                            <label class="section-title"><i class="fas fa-rupee-sign me-2"></i>2. Monthly Rent (₹)</label>
+                            <input type="number" name="rent" class="form-control form-control-lg" placeholder="e.g. 10000" min="1" required>
+                        </div>
+
+                        <!-- 3. Full Address -->
+                        <div class="mb-4">
+                            <label class="section-title"><i class="fas fa-map-marker-alt me-2"></i>3. Full Address</label>
+                            <textarea name="address" class="form-control" rows="4" placeholder="House no., street, locality, city, state" required></textarea>
+                        </div>
+                        <!-- 4. Set Exact Location on Map -->
+<div class="mb-5">
+    <label class="section-title"><i class="fas fa-map me-2"></i>4. Set Exact Location</label>
+    <p class="text-muted">Search for an address or click on the map to place a pin (you can drag it to adjust).</p>
+
+    <!-- Search Box -->
+    <div class="input-group mb-3">
+        <input type="text" id="search-input" class="form-control form-control-lg" placeholder="Search location (e.g. Delhi University, Taj Mahal)">
+        <button class="btn btn-outline-secondary" type="button" id="clear-search">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div id="map" style="height: 400px; border-radius: 15px; background: #f0f0f0;"></div>
+
+    <input type="hidden" name="latitude" id="latitude">
+    <input type="hidden" name="longitude" id="longitude">
+
+    <div class="mt-3" id="selected-location">
+        <span class="text-info"><i class="fas fa-info-circle"></i> Search or click on map to set location</span>
+    </div>
+</div>
+<!-- Submit -->
+<div class="text-center mt-5">
+    <button type="submit" class="btn btn-primary btn-lg px-5 shadow">
+        <i class="fas fa-save me-2"></i> Save Property
+    </button>
+    <a href="{{ url_for('tenant') }}" class="btn btn-outline-secondary btn-lg ms-3">
+        Cancel
+    </a>
+</div>
+<!-- Leaflet CSS & JS (Free alternative to Google Maps) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Leaflet Geocoder Plugin (for search) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+<script>
+    let map, marker;
+
+    // Initialize map
+    map = L.map('map').setView([28.6139, 77.2090], 12); // Default: New Delhi
+
+    // OpenStreetMap tiles (free)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Add geocoder (search control)
+    L.Control.geocoder({
+        defaultMarkGeocode: false,
+        placeholder: "Search for location...",
+        errorMessage: "Location not found"
+    })
+    .on('markgeocode', function(e) {
+        placeMarker(e.geocode.center);
+    })
+    .addTo(map);
+
+    // Click on map to place pin
+    map.on('click', function(e) {
+        placeMarker(e.latlng);
+    });
+
+    function placeMarker(latlng) {
+        if (marker) {
+            map.removeLayer(marker);
+        }
+
+        marker = L.marker(latlng, { draggable: true }).addTo(map);
+
+        // Update hidden fields
+        document.getElementById('latitude').value = latlng.lat.toFixed(6);
+        document.getElementById('longitude').value = latlng.lng.toFixed(6);
+
+        // Zoom to location
+        map.setView(latlng, 16);
+
+        // Feedback
+        document.getElementById('selected-location').innerHTML = 
+            `<div class="alert alert-success py-2">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Location Set!</strong><br>
+                <small>Lat: ${latlng.lat.toFixed(6)}, Lng: ${latlng.lng.toFixed(6)}</small>
+                <em class="d-block mt-1">Drag pin to adjust</em>
+            </div>`;
+
+        // Update on drag
+        marker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            document.getElementById('latitude').value = pos.lat.toFixed(6);
+            document.getElementById('longitude').value = pos.lng.toFixed(6);
+            document.getElementById('selected-location').innerHTML = 
+                `<div class="alert alert-info py-2">
+                    <i class="fas fa-arrows-alt me-2"></i>
+                    <strong>Position Updated</strong><br>
+                    <small>Lat: ${pos.lat.toFixed(6)}, Lng: ${pos.lng.toFixed(6)}</small>
+                </div>`;
+        });
+    }
+
+    // Clear search button
+    document.getElementById('clear-search').addEventListener('click', () => {
+        document.getElementById('search-input').value = '';
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+</body>
+</html>
+                        
+                    

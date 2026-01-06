@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select Your Role</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #d0e3ff 100%);
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 30px;
+            padding: 60px 80px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 30px 70px rgba(0, 91, 234, 0.3);
+        }
+
+        .card h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #005be8;
+            margin-bottom: 40px;
+        }
+
+        .role-form {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+
+        .role-btn {
+            background: #ffffff;
+            padding: 40px;
+            width: 250px;
+            border-radius: 25px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .role-btn small {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: normal;
+            margin-top: 10px;
+        }
+
+        .tenant {
+            border: 4px solid #005be8;
+            color: #005be8;
+            box-shadow: 0 15px 35px rgba(0, 91, 234, 0.3);
+        }
+
+        .tenant:hover {
+            background: #005be8;
+            color: #ffffff;
+            transform: translateY(-5px);
+        }
+
+        .owner {
+            border: 4px solid #28a745;
+            color: #28a745;
+            box-shadow: 0 15px 35px rgba(40, 167, 69, 0.3);
+        }
+
+        .owner:hover {
+            background: #28a745;
+            color: #ffffff;
+            transform: translateY(-5px);
+        }
+
+        .note {
+            margin-top: 50px;
+            color: #666;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h1>Are you looking for?</h1>
+
+        <form method="post" class="role-form">
+            <button type="submit" name="role" value="Tenant" class="role-btn tenant">
+                Tenant 👨‍🎓
+                
+            </button>
+
+            <button type="submit" name="role" value="Room/PG" class="role-btn owner">
+                Room / PG  🏠
+                
+            </button>
+        </form>
+
+        <p class="note">
+            You can switch roles later from settings
+        </p>
+    </div>
+
+</body>
+</html>
