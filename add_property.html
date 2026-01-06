@@ -22,9 +22,26 @@
             <div class="col-lg-10">
                 <div class="form-card">
 
-                    <h2 class="text-center mb-5 fw-bold text-primary">Add Room / PG Details</h2>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <a href="{{ url_for('tenant') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                        
+                    </div>
+                    <h2 class="text-center mb-5 fw-bold text-primary">
+                        {% if property_type == 'hostel' %}
+                            Add Hostel / PG Details
+                        {% elif property_type == 'apartment' %}
+                            Add Sharing Apartment Details
+                        {% else %}
+                            Add Room Details
+                        {% endif %}
+                    </h2>
 
                     <form method="POST" enctype="multipart/form-data">
+                        <!-- Hidden property type field -->
+                        <input type="hidden" name="property_type" value="{{ property_type }}">
+                        
                         <!-- Flash Messages -->
                         {% with messages = get_flashed_messages(with_categories=true) %}
                             {% if messages %}

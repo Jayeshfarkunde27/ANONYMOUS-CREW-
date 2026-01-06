@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - To-Let</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .form-card { background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); padding: 30px; }
+        .section-title { font-size: 1.1rem; font-weight: 700; color: #005be8; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-primary fs-3" href="/">To-Let 🏠</a>
+        <a href="{{ url_for('tenant') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back
+        </a>
+    </div>
+</nav>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <h3 class="mb-4">My Profile</h3>
+
+                <form method="POST">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category=='error' else 'success' }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="mb-3">
+                        <label class="section-title">Full Name</label>
+                        <input type="text" name="full_name" class="form-control" value="{{ current_user.full_name or '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="section-title">Phone</label>
+                        <input type="text" name="phone" class="form-control" value="{{ current_user.phone or '' }}" placeholder="10-digit mobile number">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="section-title">Age</label>
+                            <input type="number" name="age" class="form-control" min="18" value="{{ current_user.age or '' }}">
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label class="section-title">Gender</label>
+                            <select name="gender" class="form-select">
+                                <option value="">Select</option>
+                                <option value="male" {% if current_user.gender == 'male' %}selected{% endif %}>Male</option>
+                                <option value="female" {% if current_user.gender == 'female' %}selected{% endif %}>Female</option>
+                                <option value="other" {% if current_user.gender == 'other' %}selected{% endif %}>Other</option>
+                                <option value="prefer_not" {% if current_user.gender == 'prefer_not' %}selected{% endif %}>Prefer not to say</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="section-title">Permanent Address</label>
+                        <textarea name="permanent_address" class="form-control" rows="3">{{ current_user.permanent_address or '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="same_address" name="same_address" onchange="toggleTempAddress(this)">
+                        <label class="form-check-label" for="same_address">Temporary address is same as permanent</label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="section-title">Temporary Address</label>
+                        <textarea name="temporary_address" id="temporary_address" class="form-control" rows="3">{{ current_user.temporary_address or '' }}</textarea>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">Save Profile</button>
+                        <a href="{{ url_for('tenant') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleTempAddress(chk) {
+    const temp = document.getElementById('temporary_address');
+    if (chk.checked) {
+        temp.value = document.querySelector('textarea[name="permanent_address"]').value;
+        temp.setAttribute('readonly', 'readonly');
+    } else {
+        temp.removeAttribute('readonly');
+    }
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
