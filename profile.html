@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - To-Let</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0066ff;
+            --light: #f8fafc;
+            --text: #1e293b;
+            --text-muted: #64748b;
+        }
+        
+        body { 
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: white !important;
+            box-shadow: 0 4px 20px rgba(0, 102, 255, 0.08);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .form-card { 
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 102, 255, 0.1);
+            padding: 48px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .form-card h3 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.5px;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+            outline: none;
+        }
+        
+        .form-check {
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            margin: 16px 0;
+            transition: all 0.3s;
+        }
+        
+        .form-check:hover {
+            border-color: var(--primary);
+            background: rgba(0, 102, 255, 0.02);
+        }
+        
+        .form-check-input {
+            border-color: #cbd5e1;
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            cursor: pointer;
+        }
+        
+        .form-check-input:checked {
+            background: linear-gradient(135deg, var(--primary) 0%, #0052cc 100%);
+            border-color: var(--primary);
+        }
+        
+        .form-check-label {
+            font-weight: 600;
+            color: var(--text);
+            margin-left: 8px;
+            cursor: pointer;
+        }
+        
+        .btn {
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #0052cc 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 102, 255, 0.3);
+            color: white;
+        }
+        
+        .btn-outline-secondary {
+            border: 2px solid #cbd5e1;
+            color: var(--text-muted);
+        }
+        .btn-outline-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: transparent;
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-light">
+    <div class="container-lg">
+        <a class="navbar-brand" href="/">To-Let 🏠</a>
+        <a href="{{ url_for('tenant') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back
+        </a>
+    </div>
+</nav>
+
+<div class="container-lg my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <h3><i class="fas fa-user-circle" style="color: var(--primary); font-size: 1.75rem;"></i>My Profile</h3>
+
+                <form method="POST">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category=='error' else 'success' }}">
+                                    <i class="fas fa-{{ 'exclamation-circle' if category=='error' else 'check-circle' }} me-2"></i>
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="mb-4">
+                        <label class="form-label"><i class="fas fa-user me-2" style="color: var(--primary);"></i>Full Name</label>
+                        <input type="text" name="full_name" class="form-control" value="{{ current_user.full_name or '' }}" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label"><i class="fas fa-phone me-2" style="color: var(--primary);"></i>Phone</label>
+                            <input type="text" name="phone" class="form-control" value="{{ current_user.phone or '' }}" placeholder="10-digit mobile">
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label"><i class="fas fa-birthday-cake me-2" style="color: var(--primary);"></i>Age</label>
+                            <input type="number" name="age" class="form-control" min="18" value="{{ current_user.age or '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label"><i class="fas fa-venus-mars me-2" style="color: var(--primary);"></i>Gender</label>
+                        <select name="gender" class="form-select">
+                            <option value="">Select</option>
+                            <option value="male" {% if current_user.gender == 'male' %}selected{% endif %}>Male</option>
+                            <option value="female" {% if current_user.gender == 'female' %}selected{% endif %}>Female</option>
+                            <option value="other" {% if current_user.gender == 'other' %}selected{% endif %}>Other</option>
+                            <option value="prefer_not" {% if current_user.gender == 'prefer_not' %}selected{% endif %}>Prefer not to say</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label"><i class="fas fa-map-marker-alt me-2" style="color: var(--primary);"></i>Permanent Address</label>
+                        <textarea name="permanent_address" class="form-control" rows="3">{{ current_user.permanent_address or '' }}</textarea>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="same_address" name="same_address" onchange="toggleTempAddress(this)">
+                        <label class="form-check-label" for="same_address">
+                            <i class="fas fa-check me-2"></i>Temporary address is same as permanent
+                        </label>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label"><i class="fas fa-map-marker-alt me-2" style="color: var(--primary);"></i>Temporary Address</label>
+                        <textarea name="temporary_address" id="temporary_address" class="form-control" rows="3">{{ current_user.temporary_address or '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="{{ url_for('tenant') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleTempAddress(chk) {
+    const temp = document.getElementById('temporary_address');
+    if (chk.checked) {
+        temp.value = document.querySelector('textarea[name="permanent_address"]').value;
+        temp.setAttribute('readonly', 'readonly');
+    } else {
+        temp.removeAttribute('readonly');
+    }
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

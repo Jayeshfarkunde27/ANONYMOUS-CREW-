@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-let - {{ 'Sign Up' if mode == 'signup' else 'Login' }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f4ff 0%, #d0e3ff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-container {
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+        }
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 91, 234, 0.25);
+            padding: 50px 40px;
+        }
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .btn-primary, .btn-next {
+            background: linear-gradient(135deg, var(--primary), #007bff);
+            border: none;
+            padding: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 14px;
+            height: 60px;
+        }
+        .btn-primary:hover, .btn-next:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+        .checkbox-group {
+            margin: 20px 0;
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .form-control {
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            transition: all var(--transition-base);
+        }
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="logo">
+                <i class="fas fa-building"></i> To-Let
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, msg in messages %}
+                        <div class="alert alert-{{ 'danger' if category=='error' else 'success' }} alert-dismissible fade show mb-4">
+                            {{ msg }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Login Form -->
+            {% if mode == 'login' %}
+                <form method="post">
+                    <input type="hidden" name="action" value="login">
+                    <div class="mb-4">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="enter your email" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="enter your password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+                <p class="text-center mt-3">New here? <a href="/auth?mode=signup">Sign Up</a></p>
+            {% endif %}
+
+            <!-- Sign Up Step 1: Email + Password -->
+            {% if mode == 'signup' and not show_profile %}
+                <form method="post">
+                    <input type="hidden" name="action" value="signup_step1">
+                    <div class="mb-4">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Continue</button>
+                </form>
+                <p class="text-center mt-3">Already have an account? <a href="/auth?mode=login">Login</a></p>
+            {% endif %}
+
+            <!-- Sign Up Step 2: Profile Form -->
+            {% if show_profile %}
+                <h3 style="text-align: center; color: #005be8; margin-bottom: 30px;">Complete Your Profile</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="save_profile">
+                    <div class="mb-4">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="full_name" class="form-control" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" name="phone" class="form-control" pattern="[6-9]\d{9}" placeholder="10-digit number" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Age</label>
+                        <input type="number" name="age" class="form-control" min="18" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Gender</label>
+                        <select name="gender" class="form-control" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                            <option value="prefer_not">Prefer not to say</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Permanent Address</label>
+                        <textarea name="permanent_address" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="same_address" name="same_address">
+                        <label for="same_address">Temporary address is same as permanent</label>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Temporary Address</label>
+                        <textarea name="temporary_address" id="temporary_address" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-next w-100">Submit & Go to Dashboard</button>
+                </form>
+            {% endif %}
+
+            <div class="text-center mt-4">
+                <a href="/" class="text-muted">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        const checkbox = document.getElementById('same_address');
+        const permanent = document.querySelector('textarea[name="permanent_address"]');
+        const temporary = document.getElementById('temporary_address');
+
+        if (checkbox && permanent && temporary) {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    temporary.value = permanent.value;
+                    temporary.disabled = true;
+                } else {
+                    temporary.value = '';
+                    temporary.disabled = false;
+                }
+            });
+
+            permanent.addEventListener('input', function() {
+                if (checkbox.checked) {
+                    temporary.value = this.value;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

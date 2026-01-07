@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist - To-Let</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style> body { background:#f8f9fa } .property-card { border-radius:12px; }</style>
+</head>
+<body>
+    <div class="container my-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>My Wishlist</h2>
+            <a href="{{ url_for('room') }}" class="btn btn-outline-secondary">Back</a>
+        </div>
+
+        {% if items and items|length > 0 %}
+        <div class="row g-4">
+            {% for p in items %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card property-card">
+                    {% if p.images and p.images|length > 0 %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ p.images[0]) }}" class="card-img-top" alt="{{ p.room_type }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ p.room_type }}</h5>
+                        <p class="text-muted mb-1">{{ p.address }}</p>
+                        <p class="mb-2"><strong>Rent:</strong> ₹{{ p.rent }}</p>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('view_property', property_id=p.id) }}" class="btn btn-primary btn-sm">View</a>
+                            <form method="post" action="{{ url_for('my_wishlist') }}" style="display:inline">
+                                <input type="hidden" name="property_id" value="{{ p.id }}">
+                                <button class="btn btn-outline-danger btn-sm">Remove</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <h4>Your wishlist is empty</h4>
+            <p class="text-muted">Add properties to your wishlist to see them here.</p>
+        </div>
+        {% endif %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

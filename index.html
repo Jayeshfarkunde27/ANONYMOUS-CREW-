@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-let - Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            /* Cozy modern study room as background */
+            background: 
+                linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.5)), /* Dark overlay for text readability */
+                url('https://girlshostelsinmultan.com/wp-content/uploads/2025/12/creating-a-study-space-in-a-girls-hostel-1.webp') center/cover no-repeat fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+            background-attachment: fixed; /* Parallax effect */
+        }
+        .home-card {
+            background: rgba(255, 255, 255, 0.93);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
+            padding: 80px 60px;
+            max-width: 620px;
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 1.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo {
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: #005be8;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .tagline {
+            color: #222;
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 70px;
+            line-height: 1.6;
+        }
+        .btn-auth {
+            padding: 22px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-radius: 18px;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #005be8, #007bff);
+            border: none;
+            color: white;
+        }
+        .btn-login:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 91, 234, 0.6);
+        }
+        .btn-signup {
+            background: white;
+            color: #005be8;
+            border: 4px solid #005be8;
+        }
+        .btn-signup:hover {
+            background: #005be8;
+            color: white;
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 91, 234, 0.6);
+        }
+        .footer-text {
+            margin-top: 60px;
+            color: #555;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="home-card">
+        <div class="logo">To-let 🏠</div>
+        <p class="tagline">Find your perfect PG or room securely & instantly</p>
+
+        <div class="d-grid gap-5">
+            <a href="/auth?mode=login" class="btn btn-auth btn-login">
+                Login
+            </a>
+            <a href="/auth?mode=signup" class="btn btn-auth btn-signup">
+                Sign Up
+            </a>
+        </div>
+
+        <p class="footer-text">
+            🔒 Secure • Password Login • Instant Access
+        </p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
