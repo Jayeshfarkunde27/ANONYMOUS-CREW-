@@ -64,6 +64,14 @@ class Message(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class Wishlist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -95,10 +103,12 @@ def auth():
             if user and check_password_hash(user.password, password):
                 login_user(user)
                 flash('Logged in successfully!', 'success')
-                if user.role=='Tenant':
-                    return render_template("tenant.html")
-                elif user.role=='Room/PG':
-                    return render_template("room.html")
+                if user.role == 'Tenant':
+                    return redirect(url_for('tenant'))
+                elif user.role == 'Room/PG':
+                    return redirect(url_for('room'))
+                elif user.role == 'Seeker':
+                    return redirect(url_for('seeker'))
             else:
                 flash('Invalid email or password.', 'error')
                 return redirect(url_for('auth', mode='login'))
@@ -206,20 +216,31 @@ def role_selection():
 
     # If POST request: user is selecting role
     if request.method == 'POST':
-        role = request.form.get('role')
+        role_input = (request.form.get('role') or '').strip()
 
-        if role == 'Tenant':
-            current_user.role = 'Tenant'
+        # Map various form values to canonical role names used in the DB
+        mapping = {
+            'seeker': 'Seeker',
+            'tenant': 'Tenant',
+            'room_owner': 'Tenant',
+            'owner': 'Tenant',
+            'room/pg': 'Room/PG',
+            'room_pg': 'Room/PG'
+        }
+
+        canonical = mapping.get(role_input.lower()) if role_input else None
+
+        if canonical:
+            current_user.role = canonical
             db.session.commit()
-            flash('Role selected: Tenant 👤', 'success')
-            return render_template("tenant.html")
-
-        elif role == 'Room/PG':
-            current_user.role = 'Room/PG'
-            db.session.commit()
-            flash('Role selected: Room/PG ', 'success')
-            return render_template("room.html")
-
+            flash(f'Role selected: {canonical}', 'success')
+            # Redirect to the appropriate dashboard
+            if canonical == 'Tenant':
+                return redirect(url_for('tenant'))
+            elif canonical == 'Seeker':
+                return redirect(url_for('seeker'))
+            else:
+                return redirect(url_for('room'))
         else:
             flash('Please select a valid role.', 'error')
 
@@ -245,6 +266,30 @@ def tenant():
         unread_count = 0
     
     return render_template('tenant.html', rooms=rooms, hostels=hostels, apartments=apartments, unread_count=unread_count)
+
+
+@app.route('/seeker')
+def seeker():
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth'))
+
+    if current_user.role != 'Seeker':
+        return redirect(url_for('role_selection'))
+
+    # For seeker we may show profile summary and notifications
+    try:
+        unread_count = SeekerRequest.query.filter_by(seeker_user_id=current_user.id, status='new').count()
+    except Exception:
+        unread_count = 0
+
+    # Recommended: latest 6 properties
+    recommended = Property.query.order_by(Property.created_at.desc()).limit(6).all()
+
+    # wishlist ids for current user
+    wishlist_items = Wishlist.query.filter_by(user_id=current_user.id).all()
+    wishlist_ids = {w.property_id for w in wishlist_items}
+
+    return render_template('seeker.html', unread_count=unread_count, recommended=recommended, wishlist_ids=wishlist_ids)
 
 @app.route('/add_property', methods=['GET', 'POST'])
 def add_property():
@@ -451,6 +496,52 @@ def request_property(property_id):
         return redirect(url_for('view_property', property_id=prop.id))
 
     return render_template('request_property.html', property=prop)
+
+
+@app.route('/search')
+def search():
+    qtype = request.args.get('type', 'room')
+    qtype = qtype.lower()
+    # accept synonyms
+    if qtype in ('room', 'rooms'):
+        ptype = 'room'
+    elif qtype in ('hostel', 'pg', 'hostels'):
+        ptype = 'hostel'
+    elif qtype in ('apartment', 'apartments'):
+        ptype = 'apartment'
+    else:
+        ptype = 'room'
+
+    properties = Property.query.filter_by(property_type=ptype).order_by(Property.created_at.desc()).all()
+    return render_template('search_results.html', properties=properties, qtype=ptype)
+
+
+@app.route('/wishlist')
+def wishlist():
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth'))
+    items = Wishlist.query.filter_by(user_id=current_user.id).order_by(Wishlist.created_at.desc()).all()
+    props = [Property.query.get(w.property_id) for w in items]
+    return render_template('wishlist.html', properties=props)
+
+
+@app.route('/wishlist/toggle/<int:property_id>', methods=['POST'])
+def wishlist_toggle(property_id):
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth'))
+
+    existing = Wishlist.query.filter_by(user_id=current_user.id, property_id=property_id).first()
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()
+        flash('Removed from wishlist', 'success')
+    else:
+        neww = Wishlist(user_id=current_user.id, property_id=property_id)
+        db.session.add(neww)
+        db.session.commit()
+        flash('Added to wishlist', 'success')
+
+    return redirect(request.referrer or url_for('seeker'))
 
 
 @app.route('/chat/<int:request_id>', methods=['GET', 'POST'])
