@@ -1,6 +1,8 @@
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+import math
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -43,6 +45,13 @@ class Property(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
+class Wishlist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class SeekerRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
@@ -62,14 +71,6 @@ class Message(db.Model):
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     text = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-class Wishlist(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
 
 
 
@@ -103,12 +104,10 @@ def auth():
             if user and check_password_hash(user.password, password):
                 login_user(user)
                 flash('Logged in successfully!', 'success')
-                if user.role == 'Tenant':
-                    return redirect(url_for('tenant'))
-                elif user.role == 'Room/PG':
-                    return redirect(url_for('room'))
-                elif user.role == 'Seeker':
-                    return redirect(url_for('seeker'))
+                if user.role=='Tenant':
+                    return render_template("tenant.html")
+                elif user.role=='Room/PG':
+                    return render_template("room.html")
             else:
                 flash('Invalid email or password.', 'error')
                 return redirect(url_for('auth', mode='login'))
@@ -216,31 +215,20 @@ def role_selection():
 
     # If POST request: user is selecting role
     if request.method == 'POST':
-        role_input = (request.form.get('role') or '').strip()
+        role = request.form.get('role')
 
-        # Map various form values to canonical role names used in the DB
-        mapping = {
-            'seeker': 'Seeker',
-            'tenant': 'Tenant',
-            'room_owner': 'Tenant',
-            'owner': 'Tenant',
-            'room/pg': 'Room/PG',
-            'room_pg': 'Room/PG'
-        }
-
-        canonical = mapping.get(role_input.lower()) if role_input else None
-
-        if canonical:
-            current_user.role = canonical
+        if role == 'Tenant':
+            current_user.role = 'Tenant'
             db.session.commit()
-            flash(f'Role selected: {canonical}', 'success')
-            # Redirect to the appropriate dashboard
-            if canonical == 'Tenant':
-                return redirect(url_for('tenant'))
-            elif canonical == 'Seeker':
-                return redirect(url_for('seeker'))
-            else:
-                return redirect(url_for('room'))
+            flash('Role selected: Tenant 👤', 'success')
+            return render_template("tenant.html")
+
+        elif role == 'Room/PG':
+            current_user.role = 'Room/PG'
+            db.session.commit()
+            flash('Role selected: Room/PG ', 'success')
+            return render_template("room.html")
+
         else:
             flash('Please select a valid role.', 'error')
 
@@ -266,30 +254,6 @@ def tenant():
         unread_count = 0
     
     return render_template('tenant.html', rooms=rooms, hostels=hostels, apartments=apartments, unread_count=unread_count)
-
-
-@app.route('/seeker')
-def seeker():
-    if not current_user.is_authenticated:
-        return redirect(url_for('auth'))
-
-    if current_user.role != 'Seeker':
-        return redirect(url_for('role_selection'))
-
-    # For seeker we may show profile summary and notifications
-    try:
-        unread_count = SeekerRequest.query.filter_by(seeker_user_id=current_user.id, status='new').count()
-    except Exception:
-        unread_count = 0
-
-    # Recommended: latest 6 properties
-    recommended = Property.query.order_by(Property.created_at.desc()).limit(6).all()
-
-    # wishlist ids for current user
-    wishlist_items = Wishlist.query.filter_by(user_id=current_user.id).all()
-    wishlist_ids = {w.property_id for w in wishlist_items}
-
-    return render_template('seeker.html', unread_count=unread_count, recommended=recommended, wishlist_ids=wishlist_ids)
 
 @app.route('/add_property', methods=['GET', 'POST'])
 def add_property():
@@ -339,14 +303,7 @@ def add_property():
 def view_property(property_id):
     if not current_user.is_authenticated:
         return redirect(url_for('auth'))
-    
     property_obj = Property.query.get_or_404(property_id)
-    
-    # Check if current user owns this property
-    if property_obj.user_id != current_user.id:
-        flash('You do not have permission to view this property.', 'error')
-        return redirect(url_for('tenant'))
-    
     return render_template('view_property.html', property=property_obj)
 
 @app.route("/edit_property/<int:property_id>", methods=['GET', 'POST'])
@@ -395,11 +352,195 @@ def logout():
 def room():
     if not current_user.is_authenticated:
         return redirect('/auth')
-    
-    if current_user.role !='Room/PG':
-        return redirect('/role_selection')
 
-    return render_template("room.html")
+    # Filters: type (room/hostel/apartment), min_rent, max_rent, q (search text)
+    prop_type = request.args.get('type')
+    min_rent = request.args.get('min_rent')
+    max_rent = request.args.get('max_rent')
+    q = request.args.get('q', '').strip()
+
+    query = Property.query
+    if prop_type:
+        query = query.filter_by(property_type=prop_type)
+
+    try:
+        if min_rent:
+            mr = int(min_rent)
+            query = query.filter(Property.rent >= mr)
+        if max_rent:
+            xr = int(max_rent)
+            query = query.filter(Property.rent <= xr)
+    except ValueError:
+        # ignore invalid rent filters
+        pass
+
+    if q:
+        likeq = f"%{q}%"
+        query = query.filter(or_(Property.address.ilike(likeq), Property.room_type.ilike(likeq)))
+
+    properties = query.order_by(Property.created_at.desc()).limit(100).all()
+
+    # wishlist count for current user (if logged in)
+    wishlist_count = 0
+    wishlist_ids = set()
+    if current_user.is_authenticated:
+        try:
+            wishlist_count = Wishlist.query.filter_by(user_id=current_user.id).count()
+            # compute wishlist ids for displayed properties
+            prop_ids = [p.id for p in properties]
+            if prop_ids:
+                rows = Wishlist.query.filter(Wishlist.user_id == current_user.id, Wishlist.property_id.in_(prop_ids)).all()
+                wishlist_ids = set(r.property_id for r in rows)
+        except Exception:
+            wishlist_count = 0
+    
+    return render_template('room.html', properties=properties, wishlist_count=wishlist_count, wishlist_ids=wishlist_ids)
+
+
+@app.route('/find_room')
+def find_room():
+    # Search/listing page for seekers
+    q = request.args.get('q', '').strip()
+    prop_type = request.args.get('type')
+    min_rent = request.args.get('min_rent')
+    max_rent = request.args.get('max_rent')
+    lat = request.args.get('lat')
+    lng = request.args.get('lng')
+    radius_km = request.args.get('radius_km')
+
+    query = Property.query
+    if prop_type:
+        query = query.filter_by(property_type=prop_type)
+
+    try:
+        if min_rent:
+            mr = int(min_rent)
+            query = query.filter(Property.rent >= mr)
+        if max_rent:
+            xr = int(max_rent)
+            query = query.filter(Property.rent <= xr)
+    except ValueError:
+        pass
+
+    if q:
+        likeq = f"%{q}%"
+        query = query.filter(or_(Property.address.ilike(likeq), Property.room_type.ilike(likeq)))
+
+    props = query.order_by(Property.created_at.desc()).limit(500).all()
+
+    # If radius search requested and lat/lng provided, filter by haversine distance
+    def haversine(lat1, lon1, lat2, lon2):
+        R = 6371.0
+        phi1 = math.radians(lat1)
+        phi2 = math.radians(lat2)
+        dphi = math.radians(lat2 - lat1)
+        dlambda = math.radians(lon2 - lon1)
+        a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c
+
+    filtered = []
+    if lat and lng and radius_km:
+        try:
+            latf = float(lat); lngf = float(lng); rad = float(radius_km)
+            for p in props:
+                try:
+                    dist = haversine(latf, lngf, float(p.latitude), float(p.longitude))
+                    if dist <= rad:
+                        filtered.append(p)
+                except Exception:
+                    continue
+        except ValueError:
+            filtered = props
+    else:
+        filtered = props
+
+    location = q or None
+
+    # Prepare a JSON-serializable list for templates/JS (avoid embedding Jinja control structures in JS)
+    properties_json = []
+    for p in filtered:
+        try:
+            lat_val = float(p.latitude) if p.latitude is not None else 28.6139
+        except Exception:
+            lat_val = 28.6139
+        try:
+            lng_val = float(p.longitude) if p.longitude is not None else 77.2090
+        except Exception:
+            lng_val = 77.2090
+        properties_json.append({
+            'id': p.id,
+            'lat': lat_val,
+            'lng': lng_val,
+            'title': f"{p.room_type} - ₹{p.rent}/month",
+            'address': p.address
+        })
+
+    return render_template('find_room.html', properties=filtered, properties_json=properties_json, location=location, prop_type=prop_type)
+
+
+@app.route('/api/find_rooms')
+def api_find_rooms():
+    # JSON API for find_room; accepts same query params
+    q = request.args.get('q', '').strip()
+    prop_type = request.args.get('type')
+    min_rent = request.args.get('min_rent')
+    max_rent = request.args.get('max_rent')
+    lat = request.args.get('lat')
+    lng = request.args.get('lng')
+    radius_km = request.args.get('radius_km')
+
+    query = Property.query
+    if prop_type:
+        query = query.filter_by(property_type=prop_type)
+    try:
+        if min_rent:
+            mr = int(min_rent)
+            query = query.filter(Property.rent >= mr)
+        if max_rent:
+            xr = int(max_rent)
+            query = query.filter(Property.rent <= xr)
+    except ValueError:
+        pass
+    if q:
+        likeq = f"%{q}%"
+        query = query.filter(or_(Property.address.ilike(likeq), Property.room_type.ilike(likeq)))
+
+    props = query.order_by(Property.created_at.desc()).limit(500).all()
+
+    # optional radius filtering
+    def haversine(lat1, lon1, lat2, lon2):
+        R = 6371.0
+        phi1 = math.radians(lat1)
+        phi2 = math.radians(lat2)
+        dphi = math.radians(lat2 - lat1)
+        dlambda = math.radians(lon2 - lon1)
+        a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c
+
+    result = []
+    if lat and lng and radius_km:
+        try:
+            latf = float(lat); lngf = float(lng); rad = float(radius_km)
+            for p in props:
+                try:
+                    dist = haversine(latf, lngf, float(p.latitude), float(p.longitude))
+                    if dist <= rad:
+                        result.append({
+                            'id': p.id, 'room_type': p.room_type, 'rent': p.rent,
+                            'address': p.address, 'latitude': p.latitude, 'longitude': p.longitude
+                        })
+                except Exception:
+                    continue
+        except ValueError:
+            pass
+    else:
+        for p in props:
+            result.append({'id': p.id, 'room_type': p.room_type, 'rent': p.rent,
+                           'address': p.address, 'latitude': p.latitude, 'longitude': p.longitude})
+
+    return jsonify(result)
 
 
 @app.route('/profile', methods=['GET', 'POST'])
@@ -471,7 +612,7 @@ def notifications():
 
     # requests where current user is the owner
     reqs = SeekerRequest.query.filter_by(owner_id=current_user.id).order_by(SeekerRequest.created_at.desc()).all()
-    return render_template('notifications.html', requests=reqs)
+    return render_template('notification.html', requests=reqs)
 
 
 @app.route('/request_property/<int:property_id>', methods=['GET', 'POST'])
@@ -498,50 +639,53 @@ def request_property(property_id):
     return render_template('request_property.html', property=prop)
 
 
-@app.route('/search')
-def search():
-    qtype = request.args.get('type', 'room')
-    qtype = qtype.lower()
-    # accept synonyms
-    if qtype in ('room', 'rooms'):
-        ptype = 'room'
-    elif qtype in ('hostel', 'pg', 'hostels'):
-        ptype = 'hostel'
-    elif qtype in ('apartment', 'apartments'):
-        ptype = 'apartment'
-    else:
-        ptype = 'room'
-
-    properties = Property.query.filter_by(property_type=ptype).order_by(Property.created_at.desc()).all()
-    return render_template('search_results.html', properties=properties, qtype=ptype)
-
-
-@app.route('/wishlist')
-def wishlist():
-    if not current_user.is_authenticated:
-        return redirect(url_for('auth'))
-    items = Wishlist.query.filter_by(user_id=current_user.id).order_by(Wishlist.created_at.desc()).all()
-    props = [Property.query.get(w.property_id) for w in items]
-    return render_template('wishlist.html', properties=props)
-
-
 @app.route('/wishlist/toggle/<int:property_id>', methods=['POST'])
-def wishlist_toggle(property_id):
+def toggle_wishlist(property_id):
     if not current_user.is_authenticated:
-        return redirect(url_for('auth'))
+        return jsonify({'error': 'login_required'}), 401
 
-    existing = Wishlist.query.filter_by(user_id=current_user.id, property_id=property_id).first()
+    prop = Property.query.get_or_404(property_id)
+    existing = Wishlist.query.filter_by(user_id=current_user.id, property_id=prop.id).first()
     if existing:
         db.session.delete(existing)
         db.session.commit()
-        flash('Removed from wishlist', 'success')
+        status = 'removed'
     else:
-        neww = Wishlist(user_id=current_user.id, property_id=property_id)
-        db.session.add(neww)
+        w = Wishlist(user_id=current_user.id, property_id=prop.id)
+        db.session.add(w)
         db.session.commit()
-        flash('Added to wishlist', 'success')
+        status = 'added'
 
-    return redirect(request.referrer or url_for('seeker'))
+    count = Wishlist.query.filter_by(user_id=current_user.id).count()
+    return jsonify({'status': status, 'count': count})
+
+
+@app.route('/my_wishlist', methods=['GET', 'POST'])
+def my_wishlist():
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth'))
+
+    if request.method == 'POST':
+        # allow form remove via POST from wishlist.html
+        prop_id = request.form.get('property_id') or request.view_args.get('property_id')
+        if prop_id:
+            try:
+                prop_id = int(prop_id)
+                w = Wishlist.query.filter_by(user_id=current_user.id, property_id=prop_id).first()
+                if w:
+                    db.session.delete(w)
+                    db.session.commit()
+            except Exception:
+                pass
+
+    # show wishlist items
+    rows = Wishlist.query.filter_by(user_id=current_user.id).order_by(Wishlist.created_at.desc()).all()
+    prop_ids = [r.property_id for r in rows]
+    items = []
+    if prop_ids:
+        items = Property.query.filter(Property.id.in_(prop_ids)).all()
+
+    return render_template('wishlist.html', items=items)
 
 
 @app.route('/chat/<int:request_id>', methods=['GET', 'POST'])
