@@ -1,0 +1,119 @@
+<style>
+    :root {
+        --primary: #005be8;
+        --secondary: #6c63ff;
+        --accent: #ff6b6b;
+        --border: #d0d7ff;
+        --shadow-lg: 0 15px 40px rgba(0, 91, 234, 0.35);
+        --transition-base: 0.3s ease;
+    }
+
+    body {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #6c63ff 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Poppins', sans-serif;
+        color: #333;
+    }
+
+    .auth-container {
+        max-width: 600px;
+        width: 100%;
+        padding: 20px;
+    }
+
+    .auth-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        border-radius: 24px;
+        box-shadow: var(--shadow-lg);
+        padding: 50px 40px;
+        animation: fadeIn 0.8s ease;
+    }
+
+    .logo {
+        font-size: 3.5rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        margin-bottom: 20px;
+        letter-spacing: 2px;
+    }
+
+    .form-label {
+        color: var(--primary);
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 18px;
+        transition: all var(--transition-base);
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 12px rgba(108, 99, 255, 0.3);
+        outline: none;
+    }
+
+    .btn-primary, .btn-next {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border: none;
+        padding: 16px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border-radius: 14px;
+        height: 60px;
+        color: #fff;
+        transition: all var(--transition-base);
+        cursor: pointer;
+    }
+
+    .btn-primary:hover, .btn-next:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 12px 25px rgba(108, 99, 255, 0.4);
+    }
+
+    .checkbox-group {
+        margin: 20px 0;
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    .alert {
+        border-radius: 12px;
+        font-weight: 500;
+        animation: slideIn 0.6s ease;
+    }
+
+    a {
+        color: var(--accent);
+        text-decoration: none;
+        transition: color var(--transition-base);
+    }
+
+    a:hover {
+        color: var(--secondary);
+        text-decoration: underline;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+</style>
